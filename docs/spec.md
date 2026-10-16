@@ -1,6 +1,15 @@
 # Spec and Design Notes: Offline RAG Prompt Evaluator
 
-Status: design, pre-implementation. Scope is limited to the problem statement. Nothing here adds features beyond it, except the two small design hooks called out in section 12.
+Status: implemented (see `plan.md`). Scope is limited to the problem statement. Nothing here adds features beyond it, except the two small design hooks called out in section 12.
+
+Where the implementation differs from the design below:
+
+- The LLM default model is `claude-opus-5-5`. The structured-output schema is sent through `extra_body` so older SDK releases that lack the typed `output_config` parameter still work. `max_tokens` has 8000 tokens of headroom because that model's thinking counts against it. Server-side refusal fallbacks are not enabled; a refusal is logged as a provider error.
+- Each `llm_review.json` record carries an extra `source` field (`llm` or `stub`). Justifications over 500 characters are truncated, not rejected.
+- `validate.py` also recomputes `retrieval.json`, `automated_scores.json`, `failure_taxonomy.json` and `review_report.md` from the current inputs, not only `recommendation.md`.
+- Banned phrases may span sentences, but a negator only cancels a match in its own sentence.
+- The stemmer folds plurals and `ing`/`ed`/`es`/`s` endings only. It does not fold `withdraw` into `withdrawals`. `100%` is not in the absolute-word list because the tokenizer drops `%`.
+- The pipeline builds the LLM provider and checks the baseline before writing any artifact, so a configuration error cannot leave fresh scores next to a stale recommendation.
 
 ## 1. Goal and non-goals
 

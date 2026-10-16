@@ -40,7 +40,9 @@ Derived artifacts are written to the repo root and committed, so a reviewer can 
 | 7 Validation command | Done and committed. 278 tests pass |
 | 8 Taxonomy and report | Done and committed. 295 tests pass |
 | 9 Tests | Done and committed. 302 tests pass |
-| 10 | Not started. Next is chunk 10, docs and final run |
+| 10 Docs and final run | Done and committed, except the live Anthropic run (see below) |
+
+Chunk 10 notes: `README.md` rewritten for the finished tool, `docs/spec.md` lists where the implementation differs from the design, `.gitattributes` forces LF line endings, and the root artifacts were regenerated from a clean state with the stub reviewer and committed. A live run with a real API key has not been done: the key was not available to the shell session, so the Anthropic path is verified with a fake client only. To check it, export `ANTHROPIC_API_KEY` yourself and run `python run.py --llm anthropic --out-dir /tmp/live`, then `python validate.py --out-dir /tmp/live`.
 
 Chunk 9 notes: tests were written alongside each chunk; this chunk added `tests/test_e2e.py` (a different-domain fixture with other IDs and variant names, run end to end and validated; a guard that `src/` contains no fixture IDs, variant names or phrases).
 
@@ -78,7 +80,7 @@ Order follows data dependency. Each chunk lists its done check.
 | 7 | Validation command **(DONE)** | `validate.py` with all eight checks from spec section 7, `make validate` | Exit 0 on a clean run. Corrupting an artifact gives exit 1 with a message |
 | 8 | Taxonomy and report **(DONE)** | `taxonomy.py`, `render.py` for `review_report.md`, wired into the pipeline | Tags only from the vocabulary. Report has a section per query |
 | 9 | Tests **(DONE)** | Write tests alongside chunks 1 to 8, then add `test_validate` and `test_e2e` | `pytest` passes |
-| 10 | Docs and real-key check | `README.md` final pass. One run with a real key if one exists | Commands in README work as written |
+| 10 | Docs and real-key check **(DONE except the live-key run)** | `README.md` final pass. One run with a real key if one exists | Commands in README work as written |
 
 Chunks 2, 3 and 4's prompt builder have no dependency on each other beyond chunk 1. They can be done in any order if work is split.
 

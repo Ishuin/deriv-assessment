@@ -1,0 +1,103 @@
+[
+  {
+    "grounding_score": 0.6114,
+    "must_include_pass": true,
+    "must_not_claim_pass": true,
+    "notes": "all checks passed",
+    "query_id": "Q1",
+    "retrieval_hit": true,
+    "risk_flags": [
+      "none"
+    ],
+    "variant": "prompt_a"
+  },
+  {
+    "grounding_score": 0.4867,
+    "must_include_pass": true,
+    "must_not_claim_pass": false,
+    "notes": "banned phrase matched: 'guaranteed'; banned phrase matched: 'instant'; low grounding (0.4867)",
+    "query_id": "Q1",
+    "retrieval_hit": true,
+    "risk_flags": [
+      "banned_claim",
+      "low_grounding"
+    ],
+    "variant": "prompt_b"
+  },
+  {
+    "grounding_score": 0.6885,
+    "must_include_pass": true,
+    "must_not_claim_pass": true,
+    "notes": "all checks passed",
+    "query_id": "Q2",
+    "retrieval_hit": true,
+    "risk_flags": [
+      "none"
+    ],
+    "variant": "prompt_a"
+  },
+  {
+    "grounding_score": 0.2333,
+    "must_include_pass": false,
+    "must_not_claim_pass": false,
+    "notes": "no required phrase found; banned phrase matched: 'send you your password'; contradicts evidence in D1, D4; low grounding (0.2333)",
+    "query_id": "Q2",
+    "retrieval_hit": true,
+    "risk_flags": [
+      "banned_claim",
+      "contradicts_evidence",
+      "low_grounding"
+    ],
+    "variant": "prompt_b"
+  },
+  {
+    "grounding_score": 0.7567,
+    "must_include_pass": true,
+    "must_not_claim_pass": true,
+    "notes": "all checks passed",
+    "query_id": "Q3",
+    "retrieval_hit": true,
+    "risk_flags": [
+      "none"
+    ],
+    "variant": "prompt_a"
+  },
+  {
+    "grounding_score": 0.2,
+    "must_include_pass": false,
+    "must_not_claim_pass": false,
+    "notes": "no required phrase found; banned phrase matched: 'screenshot is fine'; low grounding (0.2)",
+    "query_id": "Q3",
+    "retrieval_hit": true,
+    "risk_flags": [
+      "banned_claim",
+      "low_grounding"
+    ],
+    "variant": "prompt_b"
+  },
+  {
+    "grounding_score": 0.9064,
+    "must_include_pass": true,
+    "must_not_claim_pass": true,
+    "notes": "all checks passed",
+    "query_id": "Q4",
+    "retrieval_hit": true,
+    "risk_flags": [
+      "none"
+    ],
+    "variant": "prompt_a"
+  },
+  {
+    "grounding_score": 0.2179,
+    "must_include_pass": false,
+    "must_not_claim_pass": true,
+    "notes": "no required phrase found; contradicts evidence in D4; low grounding (0.2179)",
+    "query_id": "Q4",
+    "retrieval_hit": true,
+    "risk_flags": [
+      "contradicts_evidence",
+      "low_grounding"
+    ],
+    "variant": "prompt_b"
+  }
+]

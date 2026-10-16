@@ -1,0 +1,74 @@
+[
+  {
+    "clarity": {
+      "prompt_a": 3,
+      "prompt_b": 3
+    },
+    "faithfulness": {
+      "prompt_a": 3,
+      "prompt_b": 2
+    },
+    "justification": "Stub reviewer: derived from deterministic rule checks, not an LLM judgment.",
+    "overclaim_flags": {
+      "prompt_a": false,
+      "prompt_b": true
+    },
+    "query_id": "Q1",
+    "source": "stub",
+    "winner": "prompt_a"
+  },
+  {
+    "clarity": {
+      "prompt_a": 3,
+      "prompt_b": 3
+    },
+    "faithfulness": {
+      "prompt_a": 4,
+      "prompt_b": 2
+    },
+    "justification": "Stub reviewer: derived from deterministic rule checks, not an LLM judgment.",
+    "overclaim_flags": {
+      "prompt_a": false,
+      "prompt_b": true
+    },
+    "query_id": "Q2",
+    "source": "stub",
+    "winner": "prompt_a"
+  },
+  {
+    "clarity": {
+      "prompt_a": 3,
+      "prompt_b": 3
+    },
+    "faithfulness": {
+      "prompt_a": 4,
+      "prompt_b": 2
+    },
+    "justification": "Stub reviewer: derived from deterministic rule checks, not an LLM judgment.",
+    "overclaim_flags": {
+      "prompt_a": false,
+      "prompt_b": true
+    },
+    "query_id": "Q3",
+    "source": "stub",
+    "winner": "prompt_a"
+  },
+  {
+    "clarity": {
+      "prompt_a": 3,
+      "prompt_b": 3
+    },
+    "faithfulness": {
+      "prompt_a": 5,
+      "prompt_b": 2
+    },
+    "justification": "Stub reviewer: derived from deterministic rule checks, not an LLM judgment.",
+    "overclaim_flags": {
+      "prompt_a": false,
+      "prompt_b": true
+    },
+    "query_id": "Q4",
+    "source": "stub",
+    "winner": "prompt_a"
+  }
+]
