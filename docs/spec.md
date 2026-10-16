@@ -83,7 +83,7 @@ Variants are the sorted union of keys under `answers`. Two or more are required.
 
 ### S1. Retrieval
 
-- Tokenise: lowercase, split on non-alphanumerics, drop stopwords, apply a light suffix stemmer (`ing`, `ed`, `es`, `s`). The stemmer exists so `withdraw` matches `withdrawals`. Document text is `title + " " + text`.
+- Tokenise: lowercase, split on non-alphanumerics, drop stopwords, apply a light suffix stemmer (`ing`, `ed`, `es`, `s`). The stemmer only folds simple plurals and verb endings (`statements` to `statement`). It does not fold `withdraw` into `withdrawals`. Document text is `title + " " + text`.
 - Score: BM25 with `k1=1.5`, `b=0.75`, IDF `ln(1 + (N - n + 0.5) / (n + 0.5))`. The index is built from the supplied kb.
 - Output score: raw BM25 divided by the best score for that query, rounded to 4 dp. Top hit is 1.0. All-zero queries stay 0.0. Raw score is also stored as `raw_score`.
 - Order: score descending, then `doc_id` ascending. This makes ties deterministic.

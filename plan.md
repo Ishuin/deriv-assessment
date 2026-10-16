@@ -31,8 +31,11 @@ Derived artifacts are written to the repo root and committed, so a reviewer can 
 | Chunk | State |
 |---|---|
 | 0 Skeleton and fixtures | Done |
-| 1 Input validation | Done, not yet committed. 70 tests pass |
-| 2 to 10 | Not started. Next is chunk 2, text and retrieval |
+| 1 Input validation | Done and committed |
+| 2 Text and retrieval | Done, not yet committed. 108 tests pass |
+| 3 to 10 | Not started. Next is chunk 3, rule checks and grounding |
+
+Chunk 2 notes: sample retrieval puts the expected doc first for all four queries (Q3's second slot is a zero-score tie broken by `doc_id`). `pipeline.py` currently holds only `run_retrieval`; later stages are added there. `artifacts.write_json` is the shared atomic writer.
 
 Chunk 1 notes: `load_inputs(data_dir)` returns an `Inputs` dataclass (`kb`, `queries`, `answers`, `variants`). Queries get a normalised `risk_level` (unknown or missing becomes medium; unknown logs a warning). An empty queries list is rejected, since aggregation needs at least one query.
 
@@ -46,7 +49,7 @@ Order follows data dependency. Each chunk lists its done check.
 |---|---|---|---|
 | 0 | Skeleton and fixtures **(DONE)** | Package dirs, `config.py`, `errors.py`, the three sample JSON files copied from the problem statement, `.gitignore`, `requirements.txt`, `tests/conftest.py` | `python -c "import rag_eval"` works. Verified: package imports with `PYTHONPATH=src`, fixtures parse, rule weights sum to 1 |
 | 1 | Input validation **(DONE)** | `schemas.py` loaders for the three inputs, rules from spec section 4 | Good fixtures load. Each bad-input case raises `InputValidationError`. Verified by `tests/test_schemas.py` |
-| 2 | Text and retrieval | `text.py`, `retrieval.py`, write `retrieval.json` | Sample: top doc matches `expected_doc_ids` for all 4 queries, 2 results each |
+| 2 | Text and retrieval **(DONE)** | `text.py`, `retrieval.py`, `artifacts.py`, `pipeline.py` (retrieval stage), write `retrieval.json` | Sample: top doc matches `expected_doc_ids` for all 4 queries, 2 results each. Verified by `tests/test_text.py` and `tests/test_retrieval.py` |
 | 3 | Rule checks and grounding | `checks.py`, `grounding.py`, write `automated_scores.json` | Sample: `prompt_a` passes all rule checks, `prompt_b` has a critical flag on all four queries |
 | 4 | LLM stage | `llm_providers.py` (stub first, then Anthropic), `llm_review.py` (prompt, validator, log), write `llm_review.json` and `llm_calls.jsonl` | Stub run produces a valid file and a log line. A bad canned response is rejected |
 | 5 | Aggregation | `aggregate.py`, `render.py` for `recommendation.md` | Sample: `prompt_a` selected with a summary table, reasons, per-query reasoning, limitations. Running twice gives identical bytes |
