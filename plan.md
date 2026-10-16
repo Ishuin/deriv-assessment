@@ -39,7 +39,10 @@ Derived artifacts are written to the repo root and committed, so a reviewer can 
 | 6 Pipeline and CLI | Done and committed. 240 tests pass |
 | 7 Validation command | Done and committed. 278 tests pass |
 | 8 Taxonomy and report | Done and committed. 295 tests pass |
-| 9 to 10 | Not started. Next is chunk 9, remaining tests |
+| 9 Tests | Done and committed. 302 tests pass |
+| 10 | Not started. Next is chunk 10, docs and final run |
+
+Chunk 9 notes: tests were written alongside each chunk; this chunk added `tests/test_e2e.py` (a different-domain fixture with other IDs and variant names, run end to end and validated; a guard that `src/` contains no fixture IDs, variant names or phrases).
 
 Chunk 8 notes: `run_all` now also writes `failure_taxonomy.json` and `review_report.md`, after the recommendation, from stored data only. `validate.py` recomputes both. `100%` was removed from the absolute-word list because the tokenizer drops `%`, so it could never match.
 
@@ -74,7 +77,7 @@ Order follows data dependency. Each chunk lists its done check.
 | 6 | Pipeline and CLI **(DONE)** | `pipeline.py`, `run.py` with `--llm`, `--require-llm`, `--baseline`, `--data-dir`, `--out-dir` | `python run.py` creates every artifact with no key |
 | 7 | Validation command **(DONE)** | `validate.py` with all eight checks from spec section 7, `make validate` | Exit 0 on a clean run. Corrupting an artifact gives exit 1 with a message |
 | 8 | Taxonomy and report **(DONE)** | `taxonomy.py`, `render.py` for `review_report.md`, wired into the pipeline | Tags only from the vocabulary. Report has a section per query |
-| 9 | Tests | Write tests alongside chunks 1 to 8, then add `test_validate` and `test_e2e` | `pytest` passes |
+| 9 | Tests **(DONE)** | Write tests alongside chunks 1 to 8, then add `test_validate` and `test_e2e` | `pytest` passes |
 | 10 | Docs and real-key check | `README.md` final pass. One run with a real key if one exists | Commands in README work as written |
 
 Chunks 2, 3 and 4's prompt builder have no dependency on each other beyond chunk 1. They can be done in any order if work is split.
