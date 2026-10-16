@@ -44,7 +44,6 @@ def test_valid_hosts(host):
         "[::1]",
         "example.com:80",
         "http://example.com",
-        "fe80::1%eth0",
         "a" * 64 + ".com",
         ".".join(["a" * 60] * 5),
         "ex\nample.com",

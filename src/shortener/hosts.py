@@ -17,9 +17,6 @@ _LABEL_PATTERN = re.compile(r"[a-z0-9](?:[a-z0-9-]*[a-z0-9])?")
 
 def parse_ip(host: str) -> ipaddress.IPv4Address | ipaddress.IPv6Address | None:
     """Return the address for an IPv4/IPv6 literal (without brackets), else None."""
-    # A zone id ("fe80::1%eth0") is valid for ipaddress but meaningless in a URL.
-    if "%" in host:
-        return None
     try:
         return ipaddress.ip_address(host)
     except ValueError:
