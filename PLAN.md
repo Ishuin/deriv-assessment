@@ -13,11 +13,11 @@ Approach and files only. Decisions D1 to D5 are in README.md section 3.
 
 ## Phase 2: URL validation and normalization (chunk B)
 
-- Pure functions, no I/O
-- Table-driven tests: one row per accepted and rejected example in README section 5
+- Pure functions, no I/O; table-driven tests: one row per accepted and rejected example in README section 5, with whitespace and control characters rejected on the raw string before parsing
 - Normalize: empty path to `/` (host and default-port handling done in Phase 1)
 - Reject self-host URLs by comparing against the canonical `Settings.base_url`
-- Files: `src/shortener/validation.py`, `tests/test_validation.py`
+- Harden `hosts.py`: strip a trailing dot, reject invalid punycode labels and IPv6 zone ids, document the IDNA 2003 `ß` limitation
+- Files: `src/shortener/validation.py`, `src/shortener/hosts.py`, `tests/test_validation.py`, `tests/test_hosts.py`
 
 ## Phase 3: Code generator (chunk C)
 
@@ -31,9 +31,9 @@ Approach and files only. Decisions D1 to D5 are in README.md section 3.
 
 - Schema created on open: `code` primary key `WITHOUT ROWID`, `UNIQUE` on normalized URL, WAL mode
 - `insert_or_get` via insert-or-ignore then select by URL; report new, duplicate, or code-taken
-- `get_by_code` lookup
+- `get_by_code` lookup; `Settings.from_env` rejects `:memory:` as `SHORTENER_DB` (data would be lost on restart)
 - Tests on `:memory:` and a temp file, including restart persistence
-- Files: `src/shortener/repository.py`, `tests/test_repository.py`
+- Files: `src/shortener/repository.py`, `src/shortener/config.py`, `tests/test_repository.py`, `tests/test_config.py`
 
 ## Phase 5: Service orchestration (chunk E)
 
@@ -48,13 +48,13 @@ Approach and files only. Decisions D1 to D5 are in README.md section 3.
 - Routes: `POST /shorten`, `GET /{code}`, `HEAD /{code}`
 - Map domain errors to status codes and the JSON error shape
 - Enforce content type, body size limit, `405` with `Allow`
-- Entry point `python -m shortener`
-- Files: `src/shortener/api.py`, `src/shortener/__main__.py`, `tests/test_api.py`
+- Entry point `python -m shortener`: warn when `SHORTENER_HOST` or `SHORTENER_PORT` is set without `SHORTENER_BASE_URL`; `Settings` rejects port 0 in `base_url`
+- Files: `src/shortener/api.py`, `src/shortener/__main__.py`, `src/shortener/config.py`, `tests/test_api.py`, `tests/test_config.py`
 
 ## Phase 7: End-to-end and delivery (chunk G)
 
-- Live-server tests on an ephemeral port
-- Concurrency test: parallel identical submissions give one row
-- Full suite run, fresh-clone check, `curl` walkthrough
+- Live-server tests on an ephemeral port; concurrency test: parallel identical submissions give one row
+- Full suite run in a clean venv, fresh-clone check, `curl` walkthrough
 - Finalize README: setup, run, API examples, limitations
-- Files: `tests/test_e2e.py`, `tests/test_concurrency.py`, `README.md`
+- Repo hygiene: ignore `.coverage`, add `.gitattributes` with LF line endings
+- Files: `tests/test_e2e.py`, `tests/test_concurrency.py`, `README.md`, `.gitignore`, `.gitattributes`
