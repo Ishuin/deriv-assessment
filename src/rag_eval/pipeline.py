@@ -11,9 +11,10 @@ from .checks import score_all
 from .errors import InputValidationError, LLMConfigError, LLMOutputError
 from .llm_providers import make_provider
 from .llm_review import run_llm_review, validate_reviews
-from .render import render_recommendation
+from .render import render_recommendation, render_review_report
 from .retrieval import retrieve_all
 from .schemas import load_inputs
+from .taxonomy import build_taxonomy
 
 
 def run_retrieval(inputs, out_dir=config.DEFAULT_DIR):
@@ -88,5 +89,20 @@ def run_all(data_dir=config.DEFAULT_DIR, out_dir=config.DEFAULT_DIR, llm_mode=co
     retrieval = run_retrieval(inputs, out_dir)
     scores = run_rule_checks(inputs, retrieval, out_dir)
     reviews, llm_status = run_llm_stage(inputs, retrieval, scores, llm_mode, out_dir, provider)
+    taxonomy = run_taxonomy(inputs, scores, reviews, out_dir)
     report = run_recommendation(inputs.queries, retrieval, scores, reviews, out_dir, baseline)
+    run_review_report(inputs, retrieval, scores, taxonomy, reviews, report, out_dir)
     return RunResult(report=report, llm_status=llm_status, llm_sources=report["llm_sources"])
+
+
+def run_taxonomy(inputs, scores, reviews, out_dir=config.DEFAULT_DIR):
+    """Tag every answer with failure modes, write failure_taxonomy.json, return records."""
+    records = build_taxonomy(inputs.queries, inputs.answers, scores, reviews)
+    write_json(Path(out_dir) / config.TAXONOMY_FILE, records)
+    return records
+
+
+def run_review_report(inputs, retrieval, scores, taxonomy, reviews, report, out_dir=config.DEFAULT_DIR):
+    """Write the per-query debugging view review_report.md."""
+    text = render_review_report(inputs.queries, inputs.answers, retrieval, scores, taxonomy, reviews, report)
+    write_text(Path(out_dir) / config.REPORT_FILE, text)

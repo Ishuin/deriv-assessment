@@ -14,9 +14,10 @@ from .aggregate import build_report
 from .checks import score_all
 from .errors import InputValidationError, LLMOutputError
 from .llm_review import validate_reviews
-from .render import render_recommendation
+from .render import render_recommendation, render_review_report
 from .retrieval import retrieve_all
 from .schemas import load_inputs
+from .taxonomy import build_taxonomy
 
 REQUIRED_INPUTS = (config.KB_FILE, config.QUERIES_FILE, config.ANSWERS_FILE)
 REQUIRED_OUTPUTS = (
@@ -168,6 +169,22 @@ def check_taxonomy(stored, scores):
     return errors
 
 
+def check_derived_views(out_dir, loaded, inputs, retrieval, scores, reviews, recommendation_text):
+    """If the taxonomy or review report exist, they must equal a fresh build from stored outputs."""
+    errors = []
+    fresh_taxonomy = build_taxonomy(inputs.queries, inputs.answers, scores, reviews)
+    if (out_dir / config.TAXONOMY_FILE).is_file() and loaded[config.TAXONOMY_FILE] != json.loads(json.dumps(fresh_taxonomy)):
+        errors.append(f"{config.TAXONOMY_FILE}: differs from a fresh tagging of the stored outputs")
+    report_path = out_dir / config.REPORT_FILE
+    if report_path.is_file():
+        baseline = BASELINE_PATTERN.search(recommendation_text).group(1)
+        report = build_report(inputs.queries, retrieval, scores, reviews, baseline)
+        fresh = render_review_report(inputs.queries, inputs.answers, retrieval, scores, fresh_taxonomy, reviews, report)
+        if report_path.read_text(encoding="utf-8") != fresh:
+            errors.append(f"{config.REPORT_FILE}: not reproducible from stored outputs")
+    return errors
+
+
 def validate_artifacts(data_dir=config.DEFAULT_DIR, out_dir=config.DEFAULT_DIR):
     """Run every check; return the list of failures (empty means all good)."""
     data_dir, out_dir = Path(data_dir), Path(out_dir)
@@ -204,4 +221,6 @@ def validate_artifacts(data_dir=config.DEFAULT_DIR, out_dir=config.DEFAULT_DIR):
     if not errors:
         text = (out_dir / config.RECOMMENDATION_FILE).read_text(encoding="utf-8")
         errors += check_recommendation(text, inputs, retrieval, scores, reviews)
+        if not errors:
+            errors += check_derived_views(out_dir, loaded, inputs, retrieval, scores, reviews, text)
     return errors

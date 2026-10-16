@@ -211,9 +211,7 @@ def test_recommendation_follows_changed_llm_review(run_dir):
 
 
 def test_taxonomy_vocabulary_and_coverage(run_dir):
-    scores = json.loads((run_dir[1] / config.SCORES_FILE).read_text(encoding="utf-8"))
     taxonomy = run_dir[1] / config.TAXONOMY_FILE
-    taxonomy.write_text(json.dumps([{"query_id": s["query_id"], "variant": s["variant"], "tags": []} for s in scores]), encoding="utf-8")
     assert validate_artifacts(*run_dir) == []
     edit_json(taxonomy, lambda d: d[0].update(tags=["not_a_tag"]))
     only_error(run_dir, "tags outside the vocabulary")

@@ -38,7 +38,10 @@ Derived artifacts are written to the repo root and committed, so a reviewer can 
 | 5 Aggregation | Done and committed. 220 tests pass |
 | 6 Pipeline and CLI | Done and committed. 240 tests pass |
 | 7 Validation command | Done and committed. 278 tests pass |
-| 8 to 10 | Not started. Next is chunk 8, taxonomy and review report |
+| 8 Taxonomy and report | Done and committed. 295 tests pass |
+| 9 to 10 | Not started. Next is chunk 9, remaining tests |
+
+Chunk 8 notes: `run_all` now also writes `failure_taxonomy.json` and `review_report.md`, after the recommendation, from stored data only. `validate.py` recomputes both. `100%` was removed from the absolute-word list because the tokenizer drops `%`, so it could never match.
 
 Chunk 7 notes: `validation.validate_artifacts` collects every failure instead of stopping at the first. Beyond the eight spec checks it recomputes retrieval and automated scores from the current inputs, so a stale or hand-edited artifact is caught. `recommendation.md` must carry its `Regression guard baseline` line, which is how the baseline is reproduced. Taxonomy and report checks already run when those files exist; chunk 8 adds the recompute check for the taxonomy.
 
@@ -70,7 +73,7 @@ Order follows data dependency. Each chunk lists its done check.
 | 5 | Aggregation **(DONE)** | `aggregate.py`, `render.py` for `recommendation.md`, `pipeline.run_recommendation` | Sample: `prompt_a` selected with a summary table, reasons, per-query reasoning, limitations. Running twice gives identical bytes |
 | 6 | Pipeline and CLI **(DONE)** | `pipeline.py`, `run.py` with `--llm`, `--require-llm`, `--baseline`, `--data-dir`, `--out-dir` | `python run.py` creates every artifact with no key |
 | 7 | Validation command **(DONE)** | `validate.py` with all eight checks from spec section 7, `make validate` | Exit 0 on a clean run. Corrupting an artifact gives exit 1 with a message |
-| 8 | Taxonomy and report | `taxonomy.py`, `render.py` for `review_report.md`, wired into the pipeline | Tags only from the vocabulary. Report has a section per query |
+| 8 | Taxonomy and report **(DONE)** | `taxonomy.py`, `render.py` for `review_report.md`, wired into the pipeline | Tags only from the vocabulary. Report has a section per query |
 | 9 | Tests | Write tests alongside chunks 1 to 8, then add `test_validate` and `test_e2e` | `pytest` passes |
 | 10 | Docs and real-key check | `README.md` final pass. One run with a real key if one exists | Commands in README work as written |
 

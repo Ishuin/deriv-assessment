@@ -101,7 +101,7 @@ TAXONOMY = (
     TAG_OVERCONFIDENT,
     TAG_IRRELEVANT,
 )
-ABSOLUTE_WORDS = frozenset({"guaranteed", "instant", "always", "definitely", "100%"})
+ABSOLUTE_WORDS = ("guaranteed", "instant", "always", "definitely")
 IRRELEVANT_GROUNDING_MAX = 0.2
 
 # Exit codes.

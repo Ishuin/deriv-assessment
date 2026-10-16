@@ -158,3 +158,54 @@ def render_recommendation(report):
         ["## Known limitations", ""] + [f"- {item}" for item in LIMITATIONS],
     ]
     return "\n\n".join("\n".join(s) for s in sections if s) + "\n"
+
+
+def _failed_checks(record):
+    """Names of the rule checks an answer failed, from its automated_scores record."""
+    failed = []
+    if record["retrieval_hit"] is False:
+        failed.append("retrieval_hit")
+    if not record["must_include_pass"]:
+        failed.append("must_include")
+    if not record["must_not_claim_pass"]:
+        failed.append("must_not_claim")
+    failed += [f for f in record["risk_flags"] if f != config.FLAG_NONE and f != config.FLAG_BANNED_CLAIM]
+    return failed
+
+
+def _answer_block(variant, answer, record, tags, review):
+    """Debug block for one answer: text, failed checks, tags, LLM scores."""
+    lines = [f"**`{variant}`**", "", f"> {answer.strip() or '(empty answer)'}", ""]
+    lines.append(f"- Failed rule checks: {', '.join(_failed_checks(record)) or 'none'}")
+    lines.append(f"- Grounding: {_num(record['grounding_score'])}; risk flags: {', '.join(record['risk_flags'])}")
+    lines.append(f"- Notes: {record['notes']}")
+    lines.append(f"- Failure tags: {', '.join(tags) or 'none'}")
+    if review:
+        lines.append(
+            f"- LLM: faithfulness {review['faithfulness'][variant]}, clarity {review['clarity'][variant]}, "
+            f"overclaim {'yes' if review['overclaim_flags'][variant] else 'no'}"
+        )
+    return lines
+
+
+def render_review_report(queries, answers, retrieval, scores, taxonomy, reviews, report):
+    """Return review_report.md: one debugging section per query."""
+    retrieved_by = {r["query_id"]: r["retrieved"] for r in retrieval}
+    score_by = {(s["query_id"], s["variant"]): s for s in scores}
+    tags_by = {(t["query_id"], t["variant"]): t["tags"] for t in taxonomy}
+    review_by = {r["query_id"]: r for r in reviews}
+    result_by = {q["query_id"]: q for q in report["per_query"]}
+    lines = ["# Review Report", "", f"Selected variant overall: {_winner(report['decision']['selected'])}"]
+    for query in queries:
+        qid, result, review = query["query_id"], result_by[query["query_id"]], review_by.get(query["query_id"])
+        lines += ["", f"## {qid} ({query['risk_level']} risk)", "", f"**Question:** {query['user_question']}", "",
+                  "| Retrieved doc | Score | Title |", "|---|---|---|"]
+        lines += [f"| {p['doc_id']} | {_num(p['score'])} | {p['title']} |" for p in retrieved_by[qid]]
+        lines.append(f"\nExpected docs: {', '.join(query['expected_doc_ids']) or 'none'}")
+        for variant in report["variants"]:
+            lines += [""] + _answer_block(variant, answers[qid][variant], score_by[(qid, variant)], tags_by[(qid, variant)], review)
+        lines += ["", f"**LLM winner:** {_winner(result['llm_winner'])}" + (f" - {review['justification']}" if review else "")]
+        lines.append(f"**Final selected for this query:** {_winner(result['winner'])}")
+        if result["llm_winner"] and result["llm_winner"] != result["winner"]:
+            lines.append("**Disagreement:** the LLM winner differs from the final result; deterministic safety checks take precedence.")
+    return "\n".join(lines) + "\n"
