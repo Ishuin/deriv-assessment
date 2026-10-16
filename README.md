@@ -95,7 +95,9 @@ So `HTTP://Example.COM:80` and `http://example.com/` get the same code. `http://
 
 - Same URL submitted twice, and with different casing or default port: one code.
 - Two requests for the same new URL at the same instant: one code (database constraint).
-- Random code collision: retry, bounded attempts, then a clear internal error.
+- Random code collision (a new URL draws a code already used by another URL): the insert is checked by selecting on the normalized URL. A row with our code means a new mapping. A row with a different code means a duplicate URL. No row means the code belonged to another URL, so retry with a new code. Attempts are bounded by a named constant, then `CodeGenerationError` (`500`).
+- Codes are random, never derived from the URL, so no hash or key can clash across URLs.
+- Generated codes that match a reserved route word (`shorten`) are rejected and regenerated.
 - Very long URL, huge request body, empty body, invalid JSON, extra JSON fields (ignored).
 - Unicode in path or query: preserved. Unicode host: normalized to punycode.
 - Server restart: mappings persist (file DB).

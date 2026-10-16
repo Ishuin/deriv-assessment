@@ -21,20 +21,21 @@ Approach and files only. Decisions D1 to D5 are in README.md section 3.
 
 - Protocol plus random base62 implementation using `secrets`
 - Fixed length from config
-- Test length, alphabet, and a stub generator for deterministic use
+- Skip reserved codes (`shorten`)
+- Test length, alphabet, reserved codes, and a stub generator for deterministic use
 - Files: `src/shortener/codegen.py`, `tests/test_codegen.py`
 
 ## Phase 4: SQLite repository (chunk D)
 
 - Schema created on open, `UNIQUE` on normalized URL
-- `insert_or_get` via insert-or-ignore then select
+- `insert_or_get` via insert-or-ignore then select by URL; report new, duplicate, or code-taken
 - `get_by_code` lookup
 - Tests on `:memory:` and a temp file, including restart persistence
 - Files: `src/shortener/repository.py`, `tests/test_repository.py`
 
 ## Phase 5: Service orchestration (chunk E)
 
-- `shorten`: validate, normalize, generate, `insert_or_get`, retry on code collision
+- `shorten`: validate, normalize, generate, `insert_or_get`, retry only on code-taken, bounded attempts
 - `resolve`: return URL or raise code-not-found
 - Inject generator, clock and repository
 - Tests: duplicates, collision retry, retry exhaustion, unknown code
