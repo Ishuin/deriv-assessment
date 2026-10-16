@@ -36,7 +36,10 @@ Derived artifacts are written to the repo root and committed, so a reviewer can 
 | 3 Rule checks and grounding | Done and committed |
 | 4 LLM stage | Done and committed. 197 tests pass |
 | 5 Aggregation | Done and committed. 220 tests pass |
-| 6 to 10 | Not started. Next is chunk 6, pipeline and CLI |
+| 6 Pipeline and CLI | Done and committed. 240 tests pass |
+| 7 to 10 | Not started. Next is chunk 7, validation command |
+
+Chunk 6 notes: `pipeline.run_all` runs the stages in dependency order, each reading only earlier stages' output. Inputs, the baseline and the LLM provider are checked before any artifact is written, so a config error cannot leave fresh scores beside a stale recommendation. A failed LLM stage still writes everything (rules-only) and exits 0, or exits 3 with `--require-llm`. Generated artifacts at the repo root are committed in chunk 10 after a clean final run.
 
 Chunk 5 notes: `build_report` is a pure function of `queries`, `retrieval`, `automated_scores`, `llm_review` and an optional baseline; variants come from the scores, so a third variant needs no code change. `recommendation.md` has no timestamps and uses LF line endings, so chunk 7 can recompute it byte for byte. Test runs: use `python -c "import pytest,sys; sys.exit(pytest.main(['-q']))"` in this environment, because the shell hook rewrites `python -m pytest` through a wrapper whose interpreter lacks `anthropic`.
 
@@ -62,7 +65,7 @@ Order follows data dependency. Each chunk lists its done check.
 | 3 | Rule checks and grounding **(DONE)** | `checks.py`, `grounding.py`, `pipeline.run_rule_checks`, write `automated_scores.json` | Sample: `prompt_a` passes all rule checks, `prompt_b` has a critical flag on all four queries. Verified by `tests/test_checks.py` and `tests/test_grounding.py` |
 | 4 | LLM stage **(DONE)** | `llm_providers.py` (stub first, then Anthropic), `llm_review.py` (prompt, validator, log), `pipeline.run_llm_stage` (incl. replay), write `llm_review.json` and `llm_calls.jsonl` | Stub run produces a valid file and a log line. A bad canned response is rejected. Verified by `tests/test_llm_review.py`; the Anthropic path is tested with a fake client only (no key available here) |
 | 5 | Aggregation **(DONE)** | `aggregate.py`, `render.py` for `recommendation.md`, `pipeline.run_recommendation` | Sample: `prompt_a` selected with a summary table, reasons, per-query reasoning, limitations. Running twice gives identical bytes |
-| 6 | Pipeline and CLI | `pipeline.py`, `run.py` with `--llm`, `--require-llm`, `--baseline`, `--data-dir`, `--out-dir` | `python run.py` creates every artifact with no key |
+| 6 | Pipeline and CLI **(DONE)** | `pipeline.py`, `run.py` with `--llm`, `--require-llm`, `--baseline`, `--data-dir`, `--out-dir` | `python run.py` creates every artifact with no key |
 | 7 | Validation command | `validate.py` with all eight checks from spec section 7, `make validate` | Exit 0 on a clean run. Corrupting an artifact gives exit 1 with a message |
 | 8 | Taxonomy and report | `taxonomy.py`, `render.py` for `review_report.md`, wired into the pipeline | Tags only from the vocabulary. Report has a section per query |
 | 9 | Tests | Write tests alongside chunks 1 to 8, then add `test_validate` and `test_e2e` | `pytest` passes |

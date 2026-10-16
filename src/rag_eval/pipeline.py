@@ -1,17 +1,19 @@
 """Stage orchestration. Each stage reads validated data and writes one artifact."""
 
 import json
+from dataclasses import dataclass
 from pathlib import Path
 
 from . import config
 from .aggregate import build_report
 from .artifacts import write_json, write_text
 from .checks import score_all
-from .errors import LLMConfigError, LLMOutputError
+from .errors import InputValidationError, LLMConfigError, LLMOutputError
 from .llm_providers import make_provider
 from .llm_review import run_llm_review, validate_reviews
 from .render import render_recommendation
 from .retrieval import retrieve_all
+from .schemas import load_inputs
 
 
 def run_retrieval(inputs, out_dir=config.DEFAULT_DIR):
@@ -42,13 +44,16 @@ def _replay_reviews(inputs, out_dir):
     return [dict(r, source=source_by_query[r["query_id"]]) for r in records]
 
 
-def run_llm_stage(inputs, retrieval, scores, mode=config.LLM_MODE_AUTO, out_dir=config.DEFAULT_DIR):
-    """Run (or replay) the LLM review, write llm_review.json, return (records, status)."""
+def run_llm_stage(inputs, retrieval, scores, mode=config.LLM_MODE_AUTO, out_dir=config.DEFAULT_DIR, provider=None):
+    """Run (or replay) the LLM review, write llm_review.json, return (records, status).
+
+    `provider` lets the caller build it up front so config errors surface before any write.
+    """
     out_dir = Path(out_dir)
     if mode == config.LLM_MODE_REPLAY:
         records, status = _replay_reviews(inputs, out_dir), config.LOG_STATUS_OK
     else:
-        provider = make_provider(mode)
+        provider = provider or make_provider(mode)
         records, status = run_llm_review(inputs, retrieval, scores, provider, out_dir / config.LLM_LOG_FILE)
     write_json(out_dir / config.LLM_REVIEW_FILE, records)
     return records, status
@@ -59,3 +64,29 @@ def run_recommendation(queries, retrieval, scores, reviews, out_dir=config.DEFAU
     report = build_report(queries, retrieval, scores, reviews, baseline)
     write_text(Path(out_dir) / config.RECOMMENDATION_FILE, render_recommendation(report))
     return report
+
+
+@dataclass(frozen=True)
+class RunResult:
+    """Outcome of a full pipeline run."""
+
+    report: dict
+    llm_status: str
+    llm_sources: list
+
+
+def run_all(data_dir=config.DEFAULT_DIR, out_dir=config.DEFAULT_DIR, llm_mode=config.LLM_MODE_AUTO, baseline=None):
+    """Run every stage in dependency order; each stage reads only earlier stages' output.
+
+    Inputs are validated and the baseline checked before any artifact is written
+    or any LLM call is made.
+    """
+    inputs = load_inputs(data_dir)
+    if baseline is not None and baseline not in inputs.variants:
+        raise InputValidationError(f"baseline {baseline!r} is not one of the variants {inputs.variants}")
+    provider = None if llm_mode == config.LLM_MODE_REPLAY else make_provider(llm_mode)
+    retrieval = run_retrieval(inputs, out_dir)
+    scores = run_rule_checks(inputs, retrieval, out_dir)
+    reviews, llm_status = run_llm_stage(inputs, retrieval, scores, llm_mode, out_dir, provider)
+    report = run_recommendation(inputs.queries, retrieval, scores, reviews, out_dir, baseline)
+    return RunResult(report=report, llm_status=llm_status, llm_sources=report["llm_sources"])

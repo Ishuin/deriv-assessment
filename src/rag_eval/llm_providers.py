@@ -1,12 +1,15 @@
 """LLM providers: the real Anthropic call and an offline stub behind one interface."""
 
 import json
+import logging
 import os
 from dataclasses import dataclass, field
 
 from . import config
 from .checks import rule_score
 from .errors import LLMConfigError, LLMProviderError
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass(frozen=True)
@@ -104,5 +107,8 @@ def make_provider(mode):
     if mode == config.LLM_MODE_ANTHROPIC:
         return AnthropicProvider()
     if mode == config.LLM_MODE_AUTO:
-        return AnthropicProvider() if os.environ.get(config.LLM_KEY_ENV) else StubProvider()
+        if os.environ.get(config.LLM_KEY_ENV):
+            return AnthropicProvider()
+        logger.warning("%s is not set: using the offline stub reviewer (no independent LLM judgment)", config.LLM_KEY_ENV)
+        return StubProvider()
     raise LLMConfigError(f"unsupported LLM mode for a live provider: {mode!r}")
