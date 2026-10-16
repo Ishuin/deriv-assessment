@@ -1,8 +1,15 @@
 """Domain error contract: stable, unique codes, fault classes, and bounded messages."""
 
+import os
+from pathlib import Path
+import subprocess
+import sys
+
 import pytest
 
 from shortener import errors
+
+SRC_DIR = Path(__file__).resolve().parent.parent / "src"
 
 EXPECTED = {
     errors.InvalidUrlError: ("invalid_url", True),
@@ -11,6 +18,7 @@ EXPECTED = {
     errors.PayloadTooLargeError: ("payload_too_large", True),
     errors.CodeNotFoundError: ("code_not_found", True),
     errors.CodeGenerationError: ("code_generation_failed", False),
+    errors.StorageError: ("storage_error", False),
     errors.ConfigError: ("invalid_config", False),
 }
 
@@ -71,6 +79,14 @@ def test_subclass_with_duplicate_code_is_rejected():
 
         class Clash(errors.ShortenerError):
             code = "invalid_url"
+
+
+def test_module_reload_does_not_trip_duplicate_check():
+    """Re-executing the module (as reloaders do) must not raise 'already used'."""
+    script = "import importlib, shortener.errors as e; importlib.reload(e)"
+    env = {**os.environ, "PYTHONPATH": str(SRC_DIR)}
+    result = subprocess.run([sys.executable, "-c", script], env=env, capture_output=True, text=True)
+    assert result.returncode == 0, result.stderr
 
 
 def test_describe_short_value_is_repr():

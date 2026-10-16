@@ -151,6 +151,7 @@ Planned layout:
 src/shortener/
   config.py       settings: db path, base URL, limits (named constants)
   errors.py       domain errors, each with a stable code
+  hosts.py        host validation and canonical origin formatting
   validation.py   validate_url, normalize_url
   codegen.py      CodeGenerator protocol, RandomBase62Generator
   repository.py   SqliteUrlRepository

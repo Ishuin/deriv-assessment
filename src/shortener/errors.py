@@ -89,6 +89,12 @@ class CodeGenerationError(ShortenerError):
     code = "code_generation_failed"
 
 
+class StorageError(ShortenerError):
+    """The backing store failed (I/O, locking, corruption), not the caller's input."""
+
+    code = "storage_error"
+
+
 class ConfigError(ShortenerError):
     """A setting is missing, malformed, or out of range."""
 

@@ -7,14 +7,16 @@ Approach and files only. Decisions D1 to D5 are in README.md section 3.
 - Create package skeleton and test config
 - Define domain errors with stable codes
 - Define settings as named constants and env overrides
-- Files: `pyproject.toml`, `requirements-dev.txt`, `.gitignore`, `src/shortener/__init__.py`, `src/shortener/config.py`, `src/shortener/errors.py`, `tests/conftest.py`
+- Shared host validation and canonical origin formatting, reused by Phase 2
+- Files: `pyproject.toml`, `requirements-dev.txt`, `.gitignore`, `src/shortener/__init__.py`, `src/shortener/config.py`, `src/shortener/errors.py`, `src/shortener/hosts.py`, `tests/conftest.py`, `tests/test_config.py`, `tests/test_errors.py`, `tests/test_hosts.py`
 
 ## Phase 2: URL validation and normalization (chunk B)
 
 - Pure functions, no I/O
 - Table-driven tests: one row per accepted and rejected example in README section 5
 - Normalize: lowercase scheme/host, punycode, drop default port, empty path to `/`
-- Reject self-host URLs via an injected host value
+- Reject self-host URLs by comparing `format_origin` output with `Settings.base_url`
+- Reuse `hosts.is_valid_host` and `hosts.format_origin`
 - Files: `src/shortener/validation.py`, `tests/test_validation.py`
 
 ## Phase 3: Code generator (chunk C)
@@ -30,6 +32,7 @@ Approach and files only. Decisions D1 to D5 are in README.md section 3.
 - Schema created on open: `code` primary key `WITHOUT ROWID`, `UNIQUE` on normalized URL, WAL mode
 - `insert_or_get` via insert-or-ignore then select by URL; report new, duplicate, or code-taken
 - `get_by_code` lookup
+- Wrap sqlite3/OS failures in `StorageError`; verify the database path is usable at startup
 - Tests on `:memory:` and a temp file, including restart persistence
 - Files: `src/shortener/repository.py`, `tests/test_repository.py`
 
@@ -44,7 +47,7 @@ Approach and files only. Decisions D1 to D5 are in README.md section 3.
 ## Phase 6: HTTP layer (chunk F)
 
 - Routes: `POST /shorten`, `GET /{code}`, `HEAD /{code}`
-- Map domain errors to status codes and the JSON error shape
+- Map domain errors to status codes and the JSON error shape; test that every error class is mapped
 - Enforce content type, body size limit, `405` with `Allow`
 - Entry point `python -m shortener`
 - Files: `src/shortener/api.py`, `src/shortener/__main__.py`, `tests/test_api.py`

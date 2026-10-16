@@ -2,10 +2,9 @@
 
 import pytest
 
-from shortener.config import Settings
+from shortener.config import IN_MEMORY_DB, Settings
 
 TEST_BASE_URL = "http://short.test"
-IN_MEMORY_DB = ":memory:"
 
 
 @pytest.fixture
