@@ -4,11 +4,13 @@ import json
 from pathlib import Path
 
 from . import config
-from .artifacts import write_json
+from .aggregate import build_report
+from .artifacts import write_json, write_text
 from .checks import score_all
 from .errors import LLMConfigError, LLMOutputError
 from .llm_providers import make_provider
 from .llm_review import run_llm_review, validate_reviews
+from .render import render_recommendation
 from .retrieval import retrieve_all
 
 
@@ -50,3 +52,10 @@ def run_llm_stage(inputs, retrieval, scores, mode=config.LLM_MODE_AUTO, out_dir=
         records, status = run_llm_review(inputs, retrieval, scores, provider, out_dir / config.LLM_LOG_FILE)
     write_json(out_dir / config.LLM_REVIEW_FILE, records)
     return records, status
+
+
+def run_recommendation(queries, retrieval, scores, reviews, out_dir=config.DEFAULT_DIR, baseline=None):
+    """Aggregate stored outputs, write recommendation.md, return the report dict."""
+    report = build_report(queries, retrieval, scores, reviews, baseline)
+    write_text(Path(out_dir) / config.RECOMMENDATION_FILE, render_recommendation(report))
+    return report
