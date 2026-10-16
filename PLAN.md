@@ -27,7 +27,7 @@ Approach and files only. Decisions D1 to D5 are in README.md section 3.
 
 ## Phase 4: SQLite repository (chunk D)
 
-- Schema created on open, `UNIQUE` on normalized URL
+- Schema created on open: `code` primary key `WITHOUT ROWID`, `UNIQUE` on normalized URL, WAL mode
 - `insert_or_get` via insert-or-ignore then select by URL; report new, duplicate, or code-taken
 - `get_by_code` lookup
 - Tests on `:memory:` and a temp file, including restart persistence

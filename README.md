@@ -158,7 +158,7 @@ src/shortener/
 tests/            one test module per layer, plus conftest.py
 ```
 
-Data model: table `urls(code TEXT PRIMARY KEY, normalized_url TEXT UNIQUE NOT NULL, original_url TEXT NOT NULL, created_at TEXT NOT NULL)`.
+Data model: table `urls(code TEXT PRIMARY KEY, normalized_url TEXT UNIQUE NOT NULL, original_url TEXT NOT NULL, created_at TEXT NOT NULL) WITHOUT ROWID`. Redirect lookup is one primary-key index lookup (O(log n)). Duplicate detection uses the unique index on `normalized_url`. Codes are checked against `^[0-9A-Za-z]{7}$` before any query. The connection uses WAL mode.
 
 ## 9. Independent chunks
 
