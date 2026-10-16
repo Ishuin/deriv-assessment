@@ -169,3 +169,17 @@ def score_all(inputs, retrieval):
         for q in inputs.queries
         for variant in inputs.variants
     ]
+
+
+def rule_score(record):
+    """Weighted deterministic score in [0, 1] for one automated_scores record."""
+    return (
+        config.RULE_WEIGHT_INCLUDE * record["must_include_pass"]
+        + config.RULE_WEIGHT_NOT_CLAIM * record["must_not_claim_pass"]
+        + config.RULE_WEIGHT_GROUNDING * record["grounding_score"]
+    )
+
+
+def is_critical(record):
+    """True if the record carries a critical risk flag."""
+    return bool(set(record["risk_flags"]) & config.CRITICAL_FLAGS)

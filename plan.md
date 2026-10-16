@@ -34,7 +34,10 @@ Derived artifacts are written to the repo root and committed, so a reviewer can 
 | 1 Input validation | Done and committed |
 | 2 Text and retrieval | Done and committed |
 | 3 Rule checks and grounding | Done and committed |
-| 4 to 10 | Not started. Next is chunk 4, LLM stage |
+| 4 LLM stage | Done and committed. 197 tests pass |
+| 5 to 10 | Not started. Next is chunk 5, aggregation and recommendation |
+
+Chunk 4 notes: one call, no retry. Failure (provider error, refusal, truncation, invalid output) is logged, `llm_review.json` becomes `[]`, and later stages treat an empty list as rules-only mode. `--llm anthropic` with no key or SDK raises `LLMConfigError` before anything is written. Default model is `claude-opus-5-5` (override with `LLM_MODEL`); the request uses structured output (`output_config.format`) with no sampling params, no forced tool choice and no thinking override, which that model rejects. Server-side refusal fallbacks are not enabled, to keep the call single and simple; a refusal surfaces as a logged provider error. Each stored review carries `source` (`llm` or `stub`). The real API path has not been run against the live service.
 
 Chunk 3 notes: sample result is `prompt_a` clean on all four queries; `prompt_b` is critical on all four (Q1 banned claim, Q2 banned claim plus contradiction, Q3 banned claim, Q4 contradiction only, since its phrase `yes, after verification` is not paraphrase-matched). Banned phrases may span sentences, but a negator only cancels a match inside its own sentence, so an earlier "not" cannot hide a later claim. Added `MIN_CONTRADICTION_OVERLAP` to `config.py`.
 
@@ -54,7 +57,7 @@ Order follows data dependency. Each chunk lists its done check.
 | 1 | Input validation **(DONE)** | `schemas.py` loaders for the three inputs, rules from spec section 4 | Good fixtures load. Each bad-input case raises `InputValidationError`. Verified by `tests/test_schemas.py` |
 | 2 | Text and retrieval **(DONE)** | `text.py`, `retrieval.py`, `artifacts.py`, `pipeline.py` (retrieval stage), write `retrieval.json` | Sample: top doc matches `expected_doc_ids` for all 4 queries, 2 results each. Verified by `tests/test_text.py` and `tests/test_retrieval.py` |
 | 3 | Rule checks and grounding **(DONE)** | `checks.py`, `grounding.py`, `pipeline.run_rule_checks`, write `automated_scores.json` | Sample: `prompt_a` passes all rule checks, `prompt_b` has a critical flag on all four queries. Verified by `tests/test_checks.py` and `tests/test_grounding.py` |
-| 4 | LLM stage | `llm_providers.py` (stub first, then Anthropic), `llm_review.py` (prompt, validator, log), write `llm_review.json` and `llm_calls.jsonl` | Stub run produces a valid file and a log line. A bad canned response is rejected |
+| 4 | LLM stage **(DONE)** | `llm_providers.py` (stub first, then Anthropic), `llm_review.py` (prompt, validator, log), `pipeline.run_llm_stage` (incl. replay), write `llm_review.json` and `llm_calls.jsonl` | Stub run produces a valid file and a log line. A bad canned response is rejected. Verified by `tests/test_llm_review.py`; the Anthropic path is tested with a fake client only (no key available here) |
 | 5 | Aggregation | `aggregate.py`, `render.py` for `recommendation.md` | Sample: `prompt_a` selected with a summary table, reasons, per-query reasoning, limitations. Running twice gives identical bytes |
 | 6 | Pipeline and CLI | `pipeline.py`, `run.py` with `--llm`, `--require-llm`, `--baseline`, `--data-dir`, `--out-dir` | `python run.py` creates every artifact with no key |
 | 7 | Validation command | `validate.py` with all eight checks from spec section 7, `make validate` | Exit 0 on a clean run. Corrupting an artifact gives exit 1 with a message |

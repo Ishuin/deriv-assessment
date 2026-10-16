@@ -11,3 +11,11 @@ class LLMOutputError(ValueError):
 
 class ArtifactValidationError(ValueError):
     """Raised when a derived artifact fails validation."""
+
+
+class LLMConfigError(RuntimeError):
+    """Raised when the requested LLM provider cannot be used (no key, SDK missing, nothing to replay)."""
+
+
+class LLMProviderError(RuntimeError):
+    """Raised when the LLM call itself fails (API error, refusal, truncated output)."""

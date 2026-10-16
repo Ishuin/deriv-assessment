@@ -11,7 +11,9 @@ from rag_eval.checks import (
     evaluate_answer,
     find_phrase_starts,
     first_included_phrase,
+    is_critical,
     risk_flags,
+    rule_score,
     score_all,
 )
 from rag_eval.pipeline import run_retrieval, run_rule_checks
@@ -208,3 +210,15 @@ def test_third_variant_is_scored_without_code_changes():
                          variants=sorted(next(iter(answers.values()))))
     scores = score_all(wider, retrieve_all(wider.kb, wider.queries))
     assert len(scores) == 12 and {r["variant"] for r in scores} == {"prompt_a", "prompt_b", "prompt_c"}
+
+
+def test_rule_score_weights_and_bounds():
+    perfect = {"must_include_pass": True, "must_not_claim_pass": True, "grounding_score": 1.0, "risk_flags": ["none"]}
+    worst = {"must_include_pass": False, "must_not_claim_pass": False, "grounding_score": 0.0, "risk_flags": ["banned_claim"]}
+    assert rule_score(perfect) == pytest.approx(1.0) and rule_score(worst) == 0.0
+    assert rule_score(dict(perfect, must_not_claim_pass=False)) == pytest.approx(0.6)
+
+
+def test_is_critical_only_for_critical_flags():
+    assert is_critical({"risk_flags": ["low_grounding", "contradicts_evidence"]})
+    assert not is_critical({"risk_flags": ["low_grounding"]}) and not is_critical({"risk_flags": ["none"]})
