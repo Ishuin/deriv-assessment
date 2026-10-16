@@ -40,6 +40,7 @@ GROUNDING_BIGRAM_WEIGHT = 0.3
 PHRASE_WINDOW_SLACK = 2
 NEGATION_LOOKBACK = 3
 NEGATORS = frozenset({"not", "no", "never", "cannot", "without"})
+MIN_CONTRADICTION_OVERLAP = 2
 
 FLAG_NONE = "none"
 FLAG_BANNED_CLAIM = "banned_claim"
