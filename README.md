@@ -1,6 +1,8 @@
 # Deriv Assessment
 
-URL shortener service. Status: **planning, awaiting approval, no code yet.** See [PLAN.md](PLAN.md) for the phased build plan.
+URL shortener service. Status: **Phase 1 (scaffold, config, errors) done; Phases 2 to 7 pending.** See [PLAN.md](PLAN.md) for the phased build plan.
+
+Run tests: `python -m pip install -r requirements-dev.txt`, then `python -m pytest`.
 
 ## 1. Problem, restated
 
