@@ -2,7 +2,7 @@
 
 A replayable evaluation harness that compares prompt strategies for retrieval-augmented question answering. It retrieves evidence with BM25, scores answers with deterministic checks, runs one bounded LLM review, and computes a promotion recommendation in code.
 
-Status: design complete. Chunk 0 (skeleton, config, errors, sample fixtures) is done. Pipeline stages, `run.py` and `validate.py` are not built yet, so the commands below do not work until later chunks land. See `plan.md` for progress and `docs/spec.md` for the full design.
+Status: design complete. Chunks 0 (skeleton, config, errors, sample fixtures) and 1 (input validation in `src/rag_eval/schemas.py`) are done. `pytest` runs their tests. Pipeline stages, `run.py` and `validate.py` are not built yet, so the commands below do not work until later chunks land. See `plan.md` for progress and `docs/spec.md` for the full design.
 
 ## Setup
 
